@@ -4,72 +4,67 @@ import java.util.Locale;
 
 public class Ship {
     private int size;
-    private String type;
+    private int type;
     //0 = destroyer(size 2) 1 = submarine(size 3) 2 = cruiser (size 3)
-    //3 = battleship(size 4) 4 = carrier (5 holes);
+    //3 = battleship(size 4) 4 = carrier (size 5);
+    private int[][] location;
     private boolean sunk;
 
     Ship(){
         sunk = false;
         size = 0;
-        type = "unset";
+        type = -1;
     }
-    Ship(String ntype){
-        String lowerType = ntype.toLowerCase(Locale.ROOT);
-        boolean shipSet = false;
+    Ship(int ntype){
         sunk = false;
-        if(lowerType.equals("destroyer")){
-            type = "destroyer";
+        type = ntype;
+        if(ntype > 4 || ntype < 0){
+            type = -1;
+        }
+        else if(ntype == 0){
             size = 2;
         }
-        else if(lowerType.equals("submarine")){
-            type = "submarine";
+        else if(ntype == 1){
             size = 3;
         }
-        else if(lowerType.equals("cruiser")){
-            type = "cruiser";
+        else if(ntype == 2){
             size = 3;
         }
-        else if(lowerType.equals("battleship")){
-            type = "battleship";
+        else if(ntype == 3){
             size = 4;
         }
-        else if(lowerType.equals("carrier")){
-            type = "carrier";
+        else if(ntype == 4){
             size = 5;
-        }
-        else if(shipSet == false){
-            System.out.println("Unable to set ship type in Ship(String ntype)");
         }
     }
 
-    public void setType(String ntype) {
-        String lowerType = ntype.toLowerCase(Locale.ROOT);
-        boolean shipSet = false;
-        if(lowerType.equals("destroyer")){
-            type = "destroyer";
+    public void setLocation(int[][] coordinates){
+        location = coordinates;
+    }
+
+    public int[][] getLocation() {
+        return location;
+    }
+
+    public void setType(int ntype) {
+        type = ntype;
+        if(ntype > 4 || ntype < 0){
+            type = -1;
+        }
+        else if(ntype == 0){
             size = 2;
         }
-        else if(lowerType.equals("submarine")){
-            type = "submarine";
+        else if(ntype == 1){
             size = 3;
         }
-        else if(lowerType.equals("cruiser")){
-            type = "cruiser";
+        else if(ntype == 2){
             size = 3;
         }
-        else if(lowerType.equals("battleship")){
-            type = "battleship";
+        else if(ntype == 3){
             size = 4;
         }
-        else if(lowerType.equals("carrier")){
-            type = "carrier";
+        else if(ntype == 4){
             size = 5;
-        }
-        else if(shipSet == false){
-            System.out.println("Unable to set ship type in Ship(String ntype) to " + ntype);
-            System.out.println("Ship type set to - 'unset'");
-            type = "unset";
         }
     }
 
@@ -87,7 +82,7 @@ public class Ship {
         return sunk;
     }
 
-    public String getType() {
+    public int getType() {
         return type;
     }
 
