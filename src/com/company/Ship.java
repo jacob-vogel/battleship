@@ -3,18 +3,19 @@ package com.company;
 import java.util.Locale;
 
 public class Ship {
-    private int size;
-    private int type;
+    protected int size;
+    //private int type;
     //0 = destroyer(size 2) 1 = submarine(size 3) 2 = cruiser (size 3)
     //3 = battleship(size 4) 4 = carrier (size 5);
-    private int[][] location;
+    protected int[] location;
     private boolean sunk;
 
     Ship(){
         sunk = false;
         size = 0;
-        type = -1;
+        //type = -1;
     }
+    /*
     Ship(int ntype){
         sunk = false;
         type = ntype;
@@ -37,15 +38,17 @@ public class Ship {
             size = 5;
         }
     }
+    */
 
-    public void setLocation(int[][] coordinates){
+    public void setLocation(int[] coordinates){
         location = coordinates;
     }
 
-    public int[][] getLocation() {
+    public int[] getLocation() {
         return location;
     }
 
+    /*
     public void setType(int ntype) {
         type = ntype;
         if(ntype > 4 || ntype < 0){
@@ -67,6 +70,7 @@ public class Ship {
             size = 5;
         }
     }
+    */
 
     public int getSize() {
         return size;
@@ -82,9 +86,11 @@ public class Ship {
         return sunk;
     }
 
+    /*
     public int getType() {
         return type;
     }
+    */
 
     public void decrementSize(){
         size--;
