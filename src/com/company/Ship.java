@@ -4,7 +4,6 @@ import java.util.Locale;
 
 public class Ship {
     protected int size;
-    //private int type;
     //0 = destroyer(size 2) 1 = submarine(size 3) 2 = cruiser (size 3)
     //3 = battleship(size 4) 4 = carrier (size 5);
     protected int[] location;
@@ -15,30 +14,20 @@ public class Ship {
         size = 0;
         //type = -1;
     }
-    /*
-    Ship(int ntype){
-        sunk = false;
-        type = ntype;
-        if(ntype > 4 || ntype < 0){
-            type = -1;
+
+    public boolean checkYourself(int hit){
+        for(int i = 0; i < size; i++){
+            if(location[i] == hit){
+                this.decrementSize();
+                if(this.isSunk()){
+                    sunk = true;
+                }
+                return true;
+            }
         }
-        else if(ntype == 0){
-            size = 2;
-        }
-        else if(ntype == 1){
-            size = 3;
-        }
-        else if(ntype == 2){
-            size = 3;
-        }
-        else if(ntype == 3){
-            size = 4;
-        }
-        else if(ntype == 4){
-            size = 5;
-        }
+        return false;
+
     }
-    */
 
     public void setLocation(int[] coordinates){
         location = coordinates;
@@ -47,30 +36,6 @@ public class Ship {
     public int[] getLocation() {
         return location;
     }
-
-    /*
-    public void setType(int ntype) {
-        type = ntype;
-        if(ntype > 4 || ntype < 0){
-            type = -1;
-        }
-        else if(ntype == 0){
-            size = 2;
-        }
-        else if(ntype == 1){
-            size = 3;
-        }
-        else if(ntype == 2){
-            size = 3;
-        }
-        else if(ntype == 3){
-            size = 4;
-        }
-        else if(ntype == 4){
-            size = 5;
-        }
-    }
-    */
 
     public int getSize() {
         return size;
@@ -85,12 +50,6 @@ public class Ship {
         }
         return sunk;
     }
-
-    /*
-    public int getType() {
-        return type;
-    }
-    */
 
     public void decrementSize(){
         size--;

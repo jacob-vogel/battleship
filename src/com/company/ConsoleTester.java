@@ -7,11 +7,11 @@ public class ConsoleTester {
     public static void main(String[] args) {
         Game game = new Game();
         boolean gameEnd = false; //should we move the isEndGame function into game??
-        boolean whichPlayer = false;
+        boolean whichPlayer = true;
         while(!gameEnd){
             //Scanner reader = new Scanner(System.in);
             int hit = 1;
-            if(whichPlayer == false){//need a getPlayer function in game???
+            if(whichPlayer == true){//need a getPlayer function in game???
                 Scanner reader1 = new Scanner(System.in);
                 System.out.println("-----------PLAYER 1s TURN----------");
                 while(hit == 1){
@@ -29,16 +29,17 @@ public class ConsoleTester {
                         //how does user know if they sank a ship for example
                         if(game.isGameEnd() == true){//need to add this isGameEnd function
                             gameEnd = true;
-                            hit = false;
+                            hit = -2;
                         }
                     }
                     if(hit == -1){
                         System.out.println("player1> Invalid guess, please guess again {Row Letter}{Column Number}");
+                        hit = 1;
                     }
                 }
                 if(!gameEnd) {
                     System.out.println("player1> You missed!");
-                    whichPlayer = true;
+                    whichPlayer = false;
                 }
             }
             else{//need a getPlayer function in game???
@@ -61,11 +62,12 @@ public class ConsoleTester {
                         //how does user know if they sank a ship for example
                         if(game.isGameEnd() == true){//need to add this isGameEnd function
                             gameEnd = true;
-                            hit = false;
+                            hit = -2;
                         }
                     }
-                    if(hit == -1){
+                    else if(hit == -1){
                         System.out.println("player2> Invalid guess, please guess again {Row Letter}{Column Number}");
+                        hit = 1;
                     }
                 }
                 if(!gameEnd) {
