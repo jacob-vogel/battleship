@@ -49,9 +49,10 @@ public class Board {
             success = true;
             while(success && x < shipSize){
                 if(gridPersonal[location] == 0){
-                    coords[x++] = location;
+                    coords[x] = location;
+                    x++;
                     location+=incr;
-                    if(location >= gridSize){
+                    if(location >= gridSize || location < 0){
                         success = false;
                     }
                 }else{
@@ -60,7 +61,12 @@ public class Board {
             }
         }
         int x = 0;
-        while(x<shipSize){
+        System.out.print("This is the location of ship with size: " + shipSize + " Location: ");
+        for(int i = 0; i < shipSize; i++){
+            System.out.print("coords[" + i + "] = " + coords[i] + " ");
+        }
+        System.out.print("\n");
+        while(x<shipSize) {
             gridPersonal[coords[x]] = 1;
             x++;
         }

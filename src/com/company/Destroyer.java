@@ -4,6 +4,6 @@ public class Destroyer extends Ship{
 
     Destroyer(){
         super();
-        size = 3;
+        size = 2;
     }
 }
