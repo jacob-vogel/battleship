@@ -35,12 +35,16 @@ public class Game {
     int getGuessCord(String userGuess){
         int guess;
         int numVal;
+        if(userGuess.length() < 2 || userGuess.length() > 3){
+            return -1;
+        }
         try {
             if(userGuess.length() == 3){
                 numVal = 10;
             }
             else{
                 numVal = Character.getNumericValue(userGuess.charAt(1));
+                //System.out.println("this is numVal in getGuessCord = " + numVal);
             }
         }catch (Exception e){
             numVal = -1;
@@ -62,9 +66,11 @@ public class Game {
         for(int i = 0; i < 10; i++){
             if(letter == letterTrans[i]){
                 charVal = i;
+                //System.out.println("this is charVal in getGuessCord = " + charVal);
             }
         }
         guess = (charVal*10) + numVal;
+        //System.out.println("this is guess in getGuessCord = " + guess);
         return guess;
     }
 

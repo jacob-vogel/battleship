@@ -4,6 +4,7 @@ import java.util.Locale;
 
 public class Ship {
     protected int size;
+    protected int permSize;
     //0 = destroyer(size 2) 1 = submarine(size 3) 2 = cruiser (size 3)
     //3 = battleship(size 4) 4 = carrier (size 5);
     protected int[] location;
@@ -16,7 +17,7 @@ public class Ship {
     }
 
     public boolean checkYourself(int hit){
-        for(int i = 0; i < size; i++){
+        for(int i = 0; i < permSize; i++){
             if(location[i] == hit){
                 this.decrementSize();
                 if(this.isSunk()){
@@ -53,5 +54,13 @@ public class Ship {
 
     public void decrementSize(){
         size--;
+    }
+
+    public void locationToString(){
+        System.out.println("location array in ship with size = " + size);
+        for(int i = 0; i < permSize; i++){
+            System.out.print("location[" + i + "] = " + location[i] + " ");
+        }
+        System.out.println("");
     }
 }

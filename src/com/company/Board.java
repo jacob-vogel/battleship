@@ -55,6 +55,12 @@ public class Board {
                     if(location >= gridSize || location < 0){
                         success = false;
                     }
+                    int temp = location + shipSize;
+                    int tempMod = temp % 10;
+                    int locMod = location % 10;
+                    if(locMod < tempMod){
+                        success = false;
+                    }
                 }else{
                     success = false;
                 }
@@ -74,15 +80,18 @@ public class Board {
         //call set ships location
     }
     boolean hitOrMiss(int guess){
-        if(gridPersonal[guess] == 1){
+        if(gridPersonal[guess] == 1){//maybe all the ship locs don't get to 1
+            //System.out.println("Board found a 1 at " + guess);
             gridPersonal[guess] = 2;
             for(Ship shipCheck : ships){
+                //shipCheck.locationToString();
                 if(shipCheck.checkYourself(guess)){
                     return true;
                 }
             }
         }
         gridPersonal[guess] = 3;
+        //System.out.println("Board didn't find a 1 at " + guess);
         return false;
     }
     boolean allShipsGone(){

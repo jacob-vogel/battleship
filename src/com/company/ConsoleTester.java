@@ -8,6 +8,7 @@ public class ConsoleTester {
         Game game = new Game();
         boolean gameEnd = false; //should we move the isEndGame function into game??
         boolean whichPlayer = true;
+        boolean winner = true;
         while(!gameEnd){
             //Scanner reader = new Scanner(System.in);
             int hit = 1;
@@ -63,6 +64,7 @@ public class ConsoleTester {
                         if(game.isGameEnd() == true){//need to add this isGameEnd function
                             gameEnd = true;
                             hit = -2;
+                            winner = false;
                         }
                     }
                     else if(hit == -1){
@@ -75,6 +77,12 @@ public class ConsoleTester {
                     whichPlayer = true;
                 }
             }
+        }
+        if(winner){
+            System.out.println("PLAYER 1 WINS");
+        }
+        else{
+            System.out.println("PLAYER 2 WINS");
         }
         System.out.println("GAME OVER");
         //it would be nice to use that toString to show the final status of the game here as well
