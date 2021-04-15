@@ -17,11 +17,23 @@ public class Player {
     private BufferedReader socketReader;
     private InputStreamReader stream;
 
+    public static class Main{
+        public static void main(String[] args){
+            Player player = new Player();
+        }
+    }
+
     public Player(){
         connected = false;
         boolean stay = true;
+        System.out.println("Welcome to Battleship!");
+        System.out.println("Would you like to attempt to connect to another player? (yes/no) if not the game will exit");
         Scanner reader = new Scanner(System.in);
-        String response;
+        String response = reader.nextLine();
+        response = response.toLowerCase(Locale.ROOT);
+        if(response.equals("no")){
+            stay = false;
+        }
         while(stay) {
             this.attemptToConnect();
             if (connected) {
@@ -29,14 +41,28 @@ public class Player {
                 while(!endGame) {
                     try {
                         System.out.println("Connection Successful!");
+                        System.out.println("Ships have been set START GAME!");
                         String playerMsg = socketReader.readLine();
                         System.out.println(playerMsg);
+                        if(response.equals("GUESS> ")){
+                            boolean hit = true;
+                            while(hit) {
+                                response = reader.nextLine();
+                                writer.print(response);
+                                writer.flush();
+                                playerMsg = socketReader.readLine();
+                                System.out.println(playerMsg);
+                                if (playerMsg.equals("You missed.")) {
+                                    hit = false;
+                                }
+                                else if(playerMsg.equals("GAME OVER")){
+                                    endGame = true;
+                                    hit = false;
+                                }
+                            }
+                        }
                         if (playerMsg.equals("endGame")) {
                             endGame = true;
-                        } else {
-                            response = reader.nextLine();
-                            writer.print(response);
-                            writer.flush();
                         }
                         //maybe check to see if a response is warranted don't want to always respond
                 /*
@@ -73,11 +99,11 @@ public class Player {
                 if(response.equals("yes")){
                     stay = true;
                 }else {
-                    System.out.println("Thanks for Playing!");
                     stay = false;
                 }
             }
         }
+        System.out.println("Thanks for Playing!");
     }
 
     public void attemptToConnect(){
@@ -100,9 +126,5 @@ public class Player {
 
     public boolean isConnected() {
         return connected;
-    }
-
-    public boolean isWhichPlayer() {
-        return whichPlayer;
     }
 }
