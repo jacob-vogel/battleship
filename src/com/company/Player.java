@@ -17,12 +17,6 @@ public class Player {
     private BufferedReader socketReader;
     private InputStreamReader stream;
 
-    public static class Main{
-        public static void main(String[] args){
-            Player player = new Player();
-        }
-    }
-
     public Player(){
         connected = false;
         boolean stay = true;
@@ -44,7 +38,7 @@ public class Player {
                         System.out.println("Ships have been set START GAME!");
                         String playerMsg = socketReader.readLine();
                         System.out.println(playerMsg);
-                        if(response.equals("GUESS> ")){
+                        if(playerMsg.equals("GUESS> ")){
                             boolean hit = true;
                             while(hit) {
                                 response = reader.nextLine();
@@ -84,7 +78,6 @@ public class Player {
                     4c. if exit then exit program
                     4d. if not exit
                  */
-
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

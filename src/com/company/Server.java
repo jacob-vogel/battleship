@@ -14,14 +14,16 @@ public class Server {
     BufferedReader sharedReader;
     int hit = 10;
     String sharedString;
-    Object lock = new Object();
+    public Object lock = new Object();
                    //not sure if this works or is a good idea
 
     void waitForLock(){
-        try{
-            lock.wait();
-        }catch (InterruptedException e){
-            e.printStackTrace();
+        synchronized (lock) {
+            try {
+                lock.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -39,7 +41,7 @@ public class Server {
         game = new Game();
         try {
             int initializePID = 0;
-            ServerSocket socket = new ServerSocket(10000);
+            ServerSocket socket = new ServerSocket(5000);
             while(true) {
                 Socket conn = socket.accept();
                 new Thread(new PlayerThread(conn, initializePID)).start();
@@ -89,15 +91,15 @@ public class Server {
         }
         @Override
         public void run() {
+            if(playerID == 1){
+                waitForLock(); //i think this wait is only needed for the first time when it is player ones turn and player 2 waits, else it can have the same wait and notify as player 1
+            }
             while(true){
                 try {
                     PrintWriter initialMessage = new PrintWriter(playerSocket.getOutputStream());
                     initialMessage.println("GUESS> ");
                 }catch (IOException e){
                     e.printStackTrace();
-                }
-                if(playerID == 1){
-                    waitForLock(); //i think this wait is only needed for the first time when it is player ones turn and player 2 waits, else it can have the same wait and notify as player 1
                 }
                 try{
                     while(hit != 0) {
