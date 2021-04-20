@@ -11,16 +11,17 @@ public class Server {
     Game game;
     int player1Port = 0;
     int player2Port = 0;
-    BufferedReader sharedReader;
     int hit = 10;
     String sharedString;
     public Object lock = new Object();
+    public boolean first = true;
                    //not sure if this works or is a good idea
 
     void waitForLock(){
         synchronized (lock) {
             try {
                 lock.wait();
+                System.out.println("locked");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -29,6 +30,7 @@ public class Server {
 
     void notifyLock(){
         synchronized (lock){
+            System.out.println("unlocked");
             lock.notify();
         }
     }
@@ -44,9 +46,10 @@ public class Server {
             ServerSocket socket = new ServerSocket(5000);
             while(true) {
                 Socket conn = socket.accept();
-                new Thread(new PlayerThread(conn, initializePID)).start();
-                initializePID++;
                 System.out.println("client connected");
+                initializePID++;// will this get incremented? or should it be above the thread creation and player 1 has PID 1 and player 2 has PID 2
+                new Thread(new PlayerThread(conn, initializePID)).start();
+                //initializePID++;// will this get incremented? or should it be above the thread creation and player 1 has PID 1 and player 2 has PID 2
                 /*
                 if(player1Port == 0) {
                     player1Port = conn.getPort();
@@ -56,7 +59,6 @@ public class Server {
                     new Thread(new Player2Thread()). start();
                 }
                  */
-                sharedReader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             }
         }catch (Exception e) {
             e.printStackTrace();
@@ -65,9 +67,9 @@ public class Server {
     //int guessResult;
     public String guessResult(boolean p){
         String result = "something weird is happening with game";
-        int player;
+        /*int player;
         if(p){ player = 1; }
-        else{ player = 2; }
+        else{ player = 2; }*/
         int GR = game.guess(sharedString, p);
         if(GR == 1){
             hit = 1;
@@ -88,47 +90,46 @@ public class Server {
         public PlayerThread(Socket s1, int pid){
             playerSocket = s1;
             playerID = pid;
+            System.out.println("player id is: " + playerID);
         }
         @Override
         public void run() {
-            if(playerID == 1){
+            if(playerID == 2 && first){
+                first = false;
+                System.out.println("player 2 locked intialize");
                 waitForLock(); //i think this wait is only needed for the first time when it is player ones turn and player 2 waits, else it can have the same wait and notify as player 1
             }
             while(true){
-                try {
+                try{
                     PrintWriter initialMessage = new PrintWriter(playerSocket.getOutputStream());
                     initialMessage.println("GUESS> ");
-                }catch (IOException e){
-                    e.printStackTrace();
-                }
-                try{
+                    System.out.println("GUESS>");
+                    initialMessage.flush();
                     while(hit != 0) {
+                        BufferedReader sharedReader = new BufferedReader(new InputStreamReader(playerSocket.getInputStream()));;
                         sharedString = sharedReader.readLine();
                         PrintWriter writer = new PrintWriter(playerSocket.getOutputStream());
                         String rez = "if this was not changed then playerID was not set correctly";
-                        if (playerID == 0) {
+                        if (playerID == 1) {
                             rez = guessResult(true);
-                        } else if (playerID == 1) {
+                        } else if (playerID == 2) {
                             rez = guessResult(false);
                         }
                         System.out.println(rez);
                         writer.print(rez);
+                        writer.flush();
                     }
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-                if(hit == 0) {
-                    notifyLock();
-                    waitForLock();
-                }
-                System.out.println("PLAYER> from player 2: " + sharedString);
-                if(game.isGameEnd()){
-                    try {
+                    if(hit == 0) {
+                        notifyLock();
+                        waitForLock();
+                    }
+                    //System.out.println("PLAYER> from player 2: " + sharedString);
+                    if(game.isGameEnd()){
                         PrintWriter endOfGameWriter = new PrintWriter(playerSocket.getOutputStream());
                         endOfGameWriter.print("GAME OVER");//(String.format("GAME OVER: player %d won", playerID+1));
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
+                }catch (IOException e){
+                    e.printStackTrace();
                 }
             }
         }
