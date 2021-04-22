@@ -6,22 +6,24 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLOutput;
 
 public class Server {
     Game game;
+    boolean gameOver;
     int player1Port = 0;
     int player2Port = 0;
     int hit = 10;
     String sharedString;
     public Object lock = new Object();
     public boolean first = true;
-                   //not sure if this works or is a good idea
+    //not sure if this works or is a good idea
 
     void waitForLock(){
         synchronized (lock) {
             try {
                 lock.wait();
-                System.out.println("locked");
+                //System.out.println("locked");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -30,7 +32,7 @@ public class Server {
 
     void notifyLock(){
         synchronized (lock){
-            System.out.println("unlocked");
+            //System.out.println("unlocked");
             lock.notify();
         }
     }
@@ -43,12 +45,16 @@ public class Server {
         game = new Game();
         try {
             int initializePID = 0;
-            ServerSocket socket = new ServerSocket(5000);
+            ServerSocket socket = new ServerSocket(7000);
             while(true) {
                 Socket conn = socket.accept();
                 System.out.println("client connected");
                 initializePID++;// will this get incremented? or should it be above the thread creation and player 1 has PID 1 and player 2 has PID 2
                 new Thread(new PlayerThread(conn, initializePID)).start();
+                /*Socket conn2 = socket.accept();
+                System.out.println("client connected");
+                initializePID++;// will this get incremented? or should it be above the thread creation and player 1 has PID 1 and player 2 has PID 2
+                new Thread(new PlayerThread(conn2, initializePID)).start();*/
                 //initializePID++;// will this get incremented? or should it be above the thread creation and player 1 has PID 1 and player 2 has PID 2
                 /*
                 if(player1Port == 0) {
@@ -65,12 +71,12 @@ public class Server {
         }
     }
     //int guessResult;
-    public String guessResult(boolean p){
+    public String guessResult(String guess, boolean p){
         String result = "something weird is happening with game";
         /*int player;
         if(p){ player = 1; }
         else{ player = 2; }*/
-        int GR = game.guess(sharedString, p);
+        int GR = game.guess(guess, p);
         if(GR == 1){
             hit = 1;
             result = "You got a hit, guess again.";//String.format("Player %d got a hit at: %s", player, sharedString);
@@ -97,41 +103,65 @@ public class Server {
             if(playerID == 2 && first){
                 first = false;
                 System.out.println("player 2 locked intialize");
-                waitForLock(); //i think this wait is only needed for the first time when it is player ones turn and player 2 waits, else it can have the same wait and notify as player 1
+                waitForLock();
+                System.out.println("player two unlocked");//i think this wait is only needed for the first time when it is player ones turn and player 2 waits, else it can have the same wait and notify as player 1
             }
-            while(true){
+            gameOver = false;
+            while(!gameOver){
                 try{
                     PrintWriter initialMessage = new PrintWriter(playerSocket.getOutputStream());
                     initialMessage.println("GUESS> ");
-                    System.out.println("GUESS>");
+                    System.out.println("GUESS> " + playerID);
                     initialMessage.flush();
-                    while(hit != 0) {
-                        BufferedReader sharedReader = new BufferedReader(new InputStreamReader(playerSocket.getInputStream()));;
-                        sharedString = sharedReader.readLine();
+                    while(hit != 0 || hit != -2) {
+                        BufferedReader sharedReader = new BufferedReader(new InputStreamReader(playerSocket.getInputStream()));
+                        System.out.println("before readLine() " + playerID);
+                        String guess = sharedReader.readLine();
+                        System.out.println("this is guess: " + guess + " " + playerID);
                         PrintWriter writer = new PrintWriter(playerSocket.getOutputStream());
                         String rez = "if this was not changed then playerID was not set correctly";
                         if (playerID == 1) {
-                            rez = guessResult(true);
+                            rez = guessResult(guess, true);
                         } else if (playerID == 2) {
-                            rez = guessResult(false);
+                            rez = guessResult(guess, false);
                         }
                         System.out.println(rez);
-                        writer.print(rez);
+                        writer.println(rez);
                         writer.flush();
+                        if(game.isGameEnd()){
+                            gameOver = true;
+                            hit = -2;
+                            PrintWriter endOfGameWriter = new PrintWriter(playerSocket.getOutputStream());
+                            endOfGameWriter.println("YOU WON");//(String.format("GAME OVER: player %d won", playerID+1));
+                            endOfGameWriter.flush();
+                            notifyLock();
+                        }
                     }
                     if(hit == 0) {
+                        hit = 10;
+                        System.out.println("player " + playerID + " unlocking for other thread");
                         notifyLock();
+                        System.out.println("player " + playerID + " locking");
                         waitForLock();
+                        System.out.println("player " + playerID + " unlocked");
+                        if(gameOver){
+                            System.out.println("redundant break statement");
+                            break;
+                        }
                     }
                     //System.out.println("PLAYER> from player 2: " + sharedString);
-                    if(game.isGameEnd()){
-                        PrintWriter endOfGameWriter = new PrintWriter(playerSocket.getOutputStream());
-                        endOfGameWriter.print("GAME OVER");//(String.format("GAME OVER: player %d won", playerID+1));
-                    }
                 }catch (IOException e){
                     e.printStackTrace();
                 }
             }
+            PrintWriter finalMessageWriter = null;
+            try {
+                finalMessageWriter = new PrintWriter(playerSocket.getOutputStream());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            finalMessageWriter.println("GAME OVER\n YOU LOST");
+            finalMessageWriter.flush();
         }
     }
 /*

@@ -32,66 +32,46 @@ public class Player {
             this.attemptToConnect();
             if (connected) {
                 boolean endGame = false;
-                while(!endGame) {
-                    try {
-                        System.out.println("Connection Successful!");
-                        System.out.println("Ships have been set START GAME!");
+                try {
+                    System.out.println("Connection Successful!");
+                    System.out.println("Ships have been set START GAME!");
+                    while (!endGame) {
                         String playerMsg = socketReader.readLine();
+                        System.out.println("playerMsg = " + playerMsg);
                         System.out.println(playerMsg);
-                        if(playerMsg.equals("GUESS> ")){
+                        if (playerMsg.equals("GUESS> ")) {
                             boolean hit = true;
-                            while(hit) {
+                            while (hit) {
                                 response = reader.nextLine();
-                                writer.print(response);
+                                System.out.println("this is response: " + response);
+                                //writer = new PrintWriter(comm.getOutputStream());
+                                writer.println(response);
                                 writer.flush();
+                                System.out.println("response written to server");
                                 playerMsg = socketReader.readLine();
                                 System.out.println(playerMsg);
                                 if (playerMsg.equals("You missed.")) {
                                     hit = false;
-                                }
-                                else if(playerMsg.equals("GAME OVER")){
+                                } else if (playerMsg.equals("GAME OVER\n YOU LOST") || playerMsg.equals("YOU WON")) {
                                     endGame = true;
                                     hit = false;
+                                    stay = false;
                                 }
                             }
                         }
-                        if (playerMsg.equals("endGame")) {
-                            endGame = true;
-                        }
-                        //maybe check to see if a response is warranted don't want to always respond
-                /*
-                STEPS FOR CLIENT SERVER INTERACTION (sketch)
-                1. user starts game via startBattleship class
-                    1a. startBattleship creates a new Player() class with constructor
-                2. Player() constructor
-                    2a. player attempts to connect to server
-                3. Successful connection
-                    3a. player is assigned number (player 1 or 2) by server
-                    3b. player sets its whichPlayer value
-                    3c. server sends "guess?" / "endGame" / "otherPlayer"
-                        3ci. if guess then get guess from console
-                        3cii. if endGame then exit program
-                        3ciii. if otherPlayer notify user that it is otherPlayer's turn
-                4. Unsuccessful connection
-                    4a. display unsuccessful connection to user
-                    4b. ask if they would like to connect again or exit
-                    4c. if exit then exit program
-                    4d. if not exit
-                 */
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                System.out.println("Thanks for playing Battleship!");
             } else {
                 System.out.println("ERROR: Unable to connect to server");
                 System.out.println("Would you like to try again?");
                 response = reader.nextLine();
                 response = response.toLowerCase();
                 //System.out.println(response);
-                if(response.equals("yes")){
+                if (response.equals("yes")) {
                     stay = true;
-                }else {
+                } else {
                     stay = false;
                 }
             }
@@ -100,9 +80,9 @@ public class Player {
     }
 
     public void attemptToConnect(){
-        System.out.println("Attempting to connect to host with port 5000");
+        System.out.println("Attempting to connect to host with port 7000");
         try{
-            comm = new Socket("127.0.0.1", 5000);
+            comm = new Socket("127.0.0.1", 7000);
             writer = new PrintWriter(comm.getOutputStream());
             stream = new InputStreamReader(comm.getInputStream());
             socketReader = new BufferedReader(stream);

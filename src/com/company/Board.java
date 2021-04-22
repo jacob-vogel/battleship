@@ -67,12 +67,11 @@ public class Board {
             }
         }
         int x = 0;
-        /*System.out.print("This is the location of ship with size: " + shipSize + " Location: ");
+        System.out.print("This is the location of ship with size: " + shipSize + " Location: ");
         for(int i = 0; i < shipSize; i++){
             System.out.print("coords[" + i + "] = " + coords[i] + " ");
         }
         System.out.print("\n");
-         */
         while(x<shipSize) {
             gridPersonal[coords[x]] = 1;
             x++;
