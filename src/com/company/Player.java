@@ -42,7 +42,7 @@ public class Player {
                             boolean hit = true;
                             while(hit) {
                                 response = reader.nextLine();
-                                writer.print(response);
+                                writer.println(response);
                                 writer.flush();
                                 playerMsg = socketReader.readLine();
                                 System.out.println(playerMsg);
