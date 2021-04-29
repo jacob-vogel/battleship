@@ -12,7 +12,6 @@ import java.util.Scanner;
 public class Player {
     private Socket comm;
     private boolean connected;
-    //private boolean whichPlayer;// true -> player1 false -> player2
     private PrintWriter writer;
     private BufferedReader socketReader;
     private InputStreamReader stream;
@@ -37,22 +36,24 @@ public class Player {
                     System.out.println("Ships have been set START GAME!");
                     while (!endGame) {
                         String playerMsg = socketReader.readLine();
-                        System.out.println("playerMsg = " + playerMsg);
-                        System.out.println(playerMsg);
-                        if (playerMsg.equals("GUESS> ")) {
+                        //System.out.print("playerMsg = " + playerMsg);
+                        System.out.print(playerMsg + " ");
+                        if(playerMsg.equals("Opponent guessing...")){
+                            System.out.println(" ");
+                        }
+                        else if (playerMsg.equals("GUESS> ")) {
                             boolean hit = true;
                             while (hit) {
                                 response = reader.nextLine();
-                                System.out.println("this is response: " + response);
-                                //writer = new PrintWriter(comm.getOutputStream());
                                 writer.println(response);
                                 writer.flush();
-                                System.out.println("response written to server");
                                 playerMsg = socketReader.readLine();
-                                System.out.println(playerMsg);
-                                if (playerMsg.equals("You missed.")) {
+                                System.out.print(playerMsg);
+                                if (playerMsg.equals("You missed. Opponent guessing...")) {
+                                    System.out.println(" ");
                                     hit = false;
-                                } else if (playerMsg.equals("GAME OVER\n YOU LOST") || playerMsg.equals("YOU WON")) {
+                                } else if (playerMsg.equals("GAME OVER: YOU LOST") || playerMsg.equals("YOU WON")) {
+                                    System.out.println(" ");
                                     endGame = true;
                                     hit = false;
                                     stay = false;
@@ -89,15 +90,9 @@ public class Player {
             writer.flush();
             connected = true;
         } catch (UnknownHostException e){
-            //e.printStackTrace();
             connected = false;
         } catch (IOException e) {
-            //e.printStackTrace();
             connected = false;
         }
-    }
-
-    public boolean isConnected() {
-        return connected;
     }
 }

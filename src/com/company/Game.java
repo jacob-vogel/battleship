@@ -40,7 +40,13 @@ public class Game {
         }
         try {
             if(userGuess.length() == 3){
-                numVal = 10;
+                int tenCheck = Character.getNumericValue(userGuess.charAt(3));
+                if(tenCheck == 0){
+                    numVal = 10;
+                }
+                else{
+                    return -1;
+                }
             }
             else{
                 numVal = Character.getNumericValue(userGuess.charAt(1));
@@ -77,7 +83,7 @@ public class Game {
     int guess(String userGuess, boolean player){// -1 invalid, 0 for miss, 1 for hit ||||| player 1 for true, player 2 false
         int guess = getGuessCord(userGuess);
         if (!validGuess(guess, player)) {
-            System.out.println("Guess was invalid, guess again");
+            //System.out.println("Guess was invalid, guess again");
             return -1;
         }
         if(player && player2Board.hitOrMiss(guess)){
