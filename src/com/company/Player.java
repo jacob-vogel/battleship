@@ -9,6 +9,8 @@ import java.net.UnknownHostException;
 import java.util.Locale;
 import java.util.Scanner;
 
+import static java.lang.System.exit;
+
 public class Player {
     private Socket comm;
     private boolean connected;
@@ -36,7 +38,6 @@ public class Player {
                     System.out.println("Ships have been set START GAME!");
                     while (!endGame) {
                         String playerMsg = socketReader.readLine();
-                        //System.out.print("playerMsg = " + playerMsg);
                         System.out.print(playerMsg + " ");
                         if(playerMsg.equals("Opponent guessing...")){
                             System.out.println(" ");
@@ -57,6 +58,18 @@ public class Player {
                                     endGame = true;
                                     hit = false;
                                     stay = false;
+                                } else if(playerMsg.equals("OPPONENT DISCONNECTED: YOU WON!")){
+                                    exit(0);
+                                    System.out.println("Would you like to try to reconnect?");
+                                    response = reader.nextLine();
+                                    response = response.toLowerCase();
+                                    hit = false;
+                                    endGame = true;
+                                    if (response.equals("yes")) {
+                                        stay = true;
+                                    } else {
+                                        stay = false;
+                                    }
                                 }
                             }
                         }
@@ -69,7 +82,6 @@ public class Player {
                 System.out.println("Would you like to try again?");
                 response = reader.nextLine();
                 response = response.toLowerCase();
-                //System.out.println(response);
                 if (response.equals("yes")) {
                     stay = true;
                 } else {

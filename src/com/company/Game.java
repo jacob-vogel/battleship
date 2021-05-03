@@ -38,10 +38,8 @@ public class Game {
         if(userGuess.length() < 2 || userGuess.length() > 3){
             return -1;
         }
-        try {
             if(userGuess.length() == 3){
-                int tenCheck = Character.getNumericValue(userGuess.charAt(3));
-                if(tenCheck == 0){
+                if(((Character.getNumericValue(userGuess.charAt(2)) == 0)) && (Character.getNumericValue(userGuess.charAt(1)) == 1)){
                     numVal = 10;
                 }
                 else{
@@ -50,14 +48,18 @@ public class Game {
             }
             else{
                 numVal = Character.getNumericValue(userGuess.charAt(1));
-                //System.out.println("this is numVal in getGuessCord = " + numVal);
             }
-        }catch (Exception e){
-            numVal = -1;
-        }
+            if(numVal <= 1 || numVal > 10){
+                return -1;
+            }
         numVal -= 1;
         int charVal = -1;
         char letter = Character.toLowerCase(userGuess.charAt(0));
+        //
+        //int letterValue = letter;
+        System.out.println("This is letterValue in get guess cord: " + letter);
+        if(letter < 97 || letter > 105){return -1;}
+        //
         char[] letterTrans = new char[10];
         letterTrans[0] = 'a';
         letterTrans[1] = 'b';
@@ -74,6 +76,9 @@ public class Game {
                 charVal = i;
                 //System.out.println("this is charVal in getGuessCord = " + charVal);
             }
+        }
+        if(charVal == -1){
+            return -1;
         }
         guess = (charVal*10) + numVal;
         //System.out.println("this is guess in getGuessCord = " + guess);
