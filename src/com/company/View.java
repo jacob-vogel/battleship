@@ -88,6 +88,6 @@ public class View {
         }
     }
     //public static void main(String[] args){
-      //  new View(10);
+    //  new View(10);
     //}
 }

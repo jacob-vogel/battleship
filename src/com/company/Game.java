@@ -38,20 +38,27 @@ public class Game {
         if(userGuess.length() < 2 || userGuess.length() > 3){
             return -1;
         }
-        try {
+        //try {
             if(userGuess.length() == 3){
-                numVal = 10;
+                if(Character.getNumericValue(userGuess.charAt(2)) == 0 && Character.getNumericValue(userGuess.charAt(1)) == 1){
+                    numVal = 10;
+                }else{ return -1; }
             }
             else{
                 numVal = Character.getNumericValue(userGuess.charAt(1));
+                if(numVal <= 0 || numVal > 9){ return -1; }
                 //System.out.println("this is numVal in getGuessCord = " + numVal);
             }
-        }catch (Exception e){
-            numVal = -1;
-        }
+        //}catch (Exception e){
+          //  numVal = -1;
+        //}
         numVal -= 1;
         int charVal = -1;
         char letter = Character.toLowerCase(userGuess.charAt(0));
+        int letterValue = Character.getNumericValue(letter);
+        if(letterValue < 97 || letterValue > 105){ return -1; }
+        charVal = letterValue - 97;
+        /*
         char[] letterTrans = new char[10];
         letterTrans[0] = 'a';
         letterTrans[1] = 'b';
@@ -69,6 +76,7 @@ public class Game {
                 //System.out.println("this is charVal in getGuessCord = " + charVal);
             }
         }
+        */
         guess = (charVal*10) + numVal;
         //System.out.println("this is guess in getGuessCord = " + guess);
         return guess;
@@ -77,7 +85,7 @@ public class Game {
     int guess(String userGuess, boolean player){// -1 invalid, 0 for miss, 1 for hit ||||| player 1 for true, player 2 false
         int guess = getGuessCord(userGuess);
         if (!validGuess(guess, player)) {
-            System.out.println("Guess was invalid, guess again");
+            //System.out.println("Guess was invalid, guess again");
             return -1;
         }
         if(player && player2Board.hitOrMiss(guess)){
