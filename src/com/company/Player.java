@@ -34,8 +34,18 @@ public class Player {
             if (connected) {
                 boolean endGame = false;
                 try {
-                    System.out.println("Connection Successful!");
-                    System.out.println("Ships have been set START GAME!");
+                    System.out.println("Connection to Server Successful!");
+                    System.out.println("Waiting for another player to connect to Server.");
+                    System.out.println("...");
+                    String connectionMessage = socketReader.readLine();
+                    System.out.println(connectionMessage);
+                    if(connectionMessage.equals("Successfully connected to other player!")){
+                        System.out.println(" ");
+                        System.out.println("Ships have been set START GAME!");
+                    }
+                    else{
+                        exit(0);
+                    }
                     while (!endGame) {
                         String playerMsg = socketReader.readLine();
                         System.out.print(playerMsg + " ");
@@ -58,20 +68,14 @@ public class Player {
                                     endGame = true;
                                     hit = false;
                                     stay = false;
-                                } else if(playerMsg.equals("OPPONENT DISCONNECTED: YOU WON!")){
-                                    exit(0);
-                                    System.out.println("Would you like to try to reconnect?");
-                                    response = reader.nextLine();
-                                    response = response.toLowerCase();
-                                    hit = false;
-                                    endGame = true;
-                                    if (response.equals("yes")) {
-                                        stay = true;
-                                    } else {
-                                        stay = false;
-                                    }
+                                }  else if(playerMsg.equals("Invalid input (incorrect format, already been guessed, or out of range)")){
+                                    System.out.println(" ");
+                                    System.out.println("Valid input(No spaces): {Letter a-j}{Number 1-10}");
+                                    System.out.print("GUESS> ");
                                 }
                             }
+                        } else if(playerMsg.equals("OPPONENT DISCONNECTED: YOU WON!")){
+                            exit(0);
                         }
                     }
                 } catch (IOException e) {

@@ -7,28 +7,21 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-
-import static java.lang.System.exit;
+import static java.lang.Thread.sleep;
 
 public class Server {
     Game game;
     boolean gameOver;
     boolean playerDisconnected;
     public Object lock = new Object();
+    int initializePID;
 
     void waitForLock(){
         synchronized (lock) {
             try {
                 lock.wait();
             } catch (InterruptedException e) {
-                notifyLock();
-                playerDisconnected = true;
-                System.out.println("inside the InterruptedException call in lock()");
                 e.printStackTrace();
-            } catch (NullPointerException e){
-                notifyLock();
-                playerDisconnected = true;
-                System.out.println("inside the NullPointerException call in lock()");
             }
         }
     }
@@ -44,31 +37,34 @@ public class Server {
     }
 
     public void serverSetUp(){
-        game = new Game();
         try {
-            int initializePID = 0;
-            Socket player2Conn, player1Conn;
+            initializePID = 0;
             ServerSocket socket = new ServerSocket(7000);
             while(true) {
+                if(initializePID < 2) {
+                    System.out.println("Waiting for clients to connect...");
+                }else{
+                    do{
+                        sleep(10000);
+                    }while(initializePID != 0);
+                    System.out.println("Waiting for clients to connect...");
+                }
                 Socket conn = socket.accept();
-                playerDisconnected = false;
+                playerDisconnected = true;
                 System.out.println("client connected");
                 initializePID++;
                 if((initializePID % 2) == 0){
-                    player2Conn = conn;
+                    game = new Game();
+                    playerDisconnected = false;
                     System.out.println("two players connected starting game...");
-                }
-                else if((initializePID % 2) == 1){
-                    player1Conn = conn;
+                    System.out.println(" ");
                 }
                 new Thread(new PlayerThread(conn, initializePID)).start();
             }
-        } catch (SocketException e){
+        } catch (SocketException e) {
             playerDisconnected = true;
-            System.out.println("inside the SocketException call in Server");
-        } catch(NullPointerException e){
-            playerDisconnected = true;
-            System.out.println("inside the NullPointerException call in Server");
+            initializePID = 0;
+            notifyLock();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -94,95 +90,120 @@ public class Server {
 
         @Override
         public void run() {
-                if ((playerID % 2) == 0) {
-                    PrintWriter player2Message = null;
-                    try {
-                        player2Message = new PrintWriter(playerSocket.getOutputStream());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    player2Message.println("Opponent guessing...");
-                    player2Message.flush();
-                    waitForLock();
+            int timeOut = 0;
+            while(playerDisconnected && (timeOut < 100)){
+                try {
+                    sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
-                gameOver = false;
-                int hit = 10;
-                while (!gameOver) {
-                    try {
-                        if(playerDisconnected){
-                            gameOver = true;
-                            System.out.println("inside the playerDisconnected if statement in Thread " + playerID);
-                            PrintWriter endOfGameWriter = null;
-                            try {
-                                endOfGameWriter = new PrintWriter(playerSocket.getOutputStream());
-                            } catch (IOException ioException) {
-                                ioException.printStackTrace();
-                            }
-                            endOfGameWriter.println("OPPONENT DISCONNECTED: YOU WON!");
+                timeOut++;
+            }
+            PrintWriter connectionMessage = null;
+            try {
+                connectionMessage = new PrintWriter(playerSocket.getOutputStream());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if(timeOut >= 20){
+                connectionMessage.println("No opponent connected please try again later");
+                initializePID = 0;
+            } else{
+                connectionMessage.println("Successfully connected to other player!");
+            }
+            connectionMessage.flush();
+            if ((playerID % 2) == 0) {
+                PrintWriter player2Message = null;
+                try {
+                    player2Message = new PrintWriter(playerSocket.getOutputStream());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                player2Message.println("Opponent guessing...");
+                player2Message.flush();
+                waitForLock();
+            }
+            gameOver = false;
+            int hit = 10;
+            while (!gameOver) {
+                try {
+                    if(playerDisconnected){
+                        //System.out.println("Inside playerDisconnected if statement in player " + playerID);
+                        PrintWriter endOfGameWriter = null;
+                        try {
+                            endOfGameWriter = new PrintWriter(playerSocket.getOutputStream());
+                        } catch (IOException ioException) {
+                            ioException.printStackTrace();
+                        }
+                        endOfGameWriter.println("OPPONENT DISCONNECTED: YOU WON!");
+                        endOfGameWriter.flush();
+                        break;
+                    }
+                    PrintWriter initialMessage = new PrintWriter(playerSocket.getOutputStream());
+                    initialMessage.println("GUESS> ");
+                    initialMessage.flush();
+                    while (hit != 0 && !playerDisconnected) {
+                        BufferedReader sharedReader = new BufferedReader(new InputStreamReader(playerSocket.getInputStream()));
+                        String guess = sharedReader.readLine();
+                        PrintWriter writer = new PrintWriter(playerSocket.getOutputStream());
+                        String rez = "Invalid input (incorrect format, already been guessed, or out of range)";
+                        if (playerID == 1) {
+                            hit = guessResult(guess, true);
+                        } else if (playerID == 2) {
+                            hit = guessResult(guess, false);
+                        }
+                        if (hit == 1) {
+                            rez = "You got a hit! guess again> ";
+                        } else if (hit == 0) {
+                            rez = "You missed. Opponent guessing...";
+                        }
+                        writer.println(rez);
+                        writer.flush();
+                        if (gameOver) {
+                            initializePID = 0;
+                            hit = -2;
+                            PrintWriter endOfGameWriter = new PrintWriter(playerSocket.getOutputStream());
+                            endOfGameWriter.println("YOU WON");
                             endOfGameWriter.flush();
+                            notifyLock();
                             break;
                         }
-                        PrintWriter initialMessage = new PrintWriter(playerSocket.getOutputStream());
-                        initialMessage.println("GUESS> ");
-                        initialMessage.flush();
-                        while (hit != 0 && !playerDisconnected) {
-                            BufferedReader sharedReader = new BufferedReader(new InputStreamReader(playerSocket.getInputStream()));
-                            String guess = sharedReader.readLine();
-                            PrintWriter writer = new PrintWriter(playerSocket.getOutputStream());
-                            String rez = "Invalid input (incorrect guess format, guess has already been guessed, or guess is out of range) guess again> ";
-                            if (playerID == 1) {
-                                hit = guessResult(guess, true);
-                            } else if (playerID == 2) {
-                                hit = guessResult(guess, false);
-                            }
-                            if (hit == 1) {
-                                rez = "You got a hit! guess again> ";
-                            } else if (hit == 0) {
-                                rez = "You missed. Opponent guessing...";
-                            }
-                            writer.println(rez);
-                            writer.flush();
-                            if (gameOver) {
-                                hit = -2;
-                                PrintWriter endOfGameWriter = new PrintWriter(playerSocket.getOutputStream());
-                                endOfGameWriter.println("YOU WON");
-                                endOfGameWriter.flush();
-                                notifyLock();
-                                break;
-                            }
-                        }
-                        if (hit == 0 && !playerDisconnected) {
-                            System.out.println("miss if statement for player" + playerID);
-                            hit = 10;
-                            notifyLock();
-                            waitForLock();
-                            if (gameOver) {
-                                break;
-                            }
-                        }
-                    } catch (NullPointerException e){
-                        notifyLock();
-                        playerDisconnected = true;
-                        System.out.println("inside the NullPointerException call in Thread " + playerID);
-                    } catch (SocketException e){
-                        notifyLock();
-                        playerDisconnected = true;
-                        System.out.println("inside the SocketException call in Thread " + playerID);
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
-                }
-                if(!playerDisconnected) {
-                    PrintWriter finalMessageWriter = null;
-                    try {
-                        finalMessageWriter = new PrintWriter(playerSocket.getOutputStream());
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    if (hit == 0 && !playerDisconnected) {
+                        //System.out.println("inside miss statement this is playerDisconnected = " + playerDisconnected + " player" + playerID);
+                        hit = 10;
+                        notifyLock();
+                        waitForLock();
+                        //System.out.println("after wait for lock in miss statement this is playerDisconnected = " + playerDisconnected + " player" + playerID);
+                        if (gameOver) {
+                            break;
+                        }
                     }
-                    finalMessageWriter.println("GAME OVER: YOU LOST");
-                    finalMessageWriter.flush();
+                    //System.out.println("after miss statement player" + playerID);
+                } catch (SocketException e) {
+                    //System.out.println("SocketException hit in thread" + playerID + " unlocking...");
+                    notifyLock();
+                    playerDisconnected = true;
+                    initializePID = 0;
+                } catch (NullPointerException e){
+                    //System.out.println("Nullpointerexception hit in thread" + playerID + " unlocking...");
+                    notifyLock();
+                    playerDisconnected = true;
+                    initializePID = 0;
+                }  catch (IOException e) {
+                    e.printStackTrace();
                 }
+            }
+            if(!playerDisconnected) {
+                PrintWriter finalMessageWriter = null;
+                try {
+                    finalMessageWriter = new PrintWriter(playerSocket.getOutputStream());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                finalMessageWriter.println("GAME OVER: YOU LOST");
+                finalMessageWriter.flush();
+            }
         }
     }
 }
