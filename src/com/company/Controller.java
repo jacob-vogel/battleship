@@ -10,15 +10,19 @@ public class Controller {
     View view;
     Model model;
     String currentGuess;
+    boolean confirmButtonPressed;
 
     public Controller(){
         view = new View(10);
         model = new Model(10);
+        currentGuess = "-";
+        confirmButtonPressed = false;
         ConfirmButtonActionListener confirmButtonActionListener = new ConfirmButtonActionListener();
         view.setConfirmButtonListener(confirmButtonActionListener);
     }
 
     public String getCurrentGuess(){
+        confirmButtonPressed = false;
         return currentGuess;
     }
 
@@ -29,7 +33,7 @@ public class Controller {
             numVal = 10;
         }
         char letter = Character.toLowerCase(guess.charAt(0));
-        int letterVal = Character.getNumericValue(letter);
+        int letterVal = (int) letter;
         letterVal-=97;
         return (letterVal*10)+(numVal-1);
     }
@@ -40,40 +44,40 @@ public class Controller {
 
     public void changeViewBasedOnResult(String guessResult){
         int guess = convertGuess();
-        if(guessResult.equals("You missed. Opponent guessing...")){
-            //change grid at currentGuess to gray
-            view.changeGridAfterGuess(guess, 0);
-            //display this the string guessResult on resultLabel
+        if(guessResult.equals("Would you like to attempt to connect to another player? (yes/no) if not the game will exit")){
+            //view.enableButton();
+        }else if(guessResult.equals("Waiting for player to connect...")){
             view.disableButton();
-            view.setResultLabel(guessResult);
-            return;
-        }else if(guessResult.equals("GAME OVER: YOU LOST") || guessResult.equals("YOU WON")){
-            //change grid at current guess
-            //display this the string guessResult on resultLabel
-            view.changeGridAfterGuess(guess, 1);
-            view.setResultLabel(guessResult);
-            //freeze gui or terminate game
-            return;
         }
-        //else if(guessResult.equals("You got a hit. Guess again.")){
-            //change grid at current guess to red
-            //display this string guessResult on result label
+        /*else if(guessResult.equals("Successfully connected to other player!")){
+            view.setResultLabel(guessResult);
+        }else if(guessResult.equals("Opponent guessing...")){
+            view.setResultLabel(guessResult);
+        }*/
+        else if (guessResult.equals("Your turn! Guess")){
+                view.enableButton();
+        }else if(guessResult.equals("You got a hit! Guess again") || guessResult.equals("GAME OVER: YOU LOST") || guessResult.equals("YOU WON")){
             view.changeGridAfterGuess(guess, 1);
-            view.setResultLabel("You got a hit. Guess again.");
-        //}
+        }
+        else if(guessResult.equals("You missed. Opponent guessing...")){
+            view.disableButton();
+            view.changeGridAfterGuess(guess, 0);
+        }
+        view.setResultLabel(guessResult);
     }
 
     class ConfirmButtonActionListener implements ActionListener{
         @Override
         public void actionPerformed(ActionEvent e) {
             currentGuess = view.getInputText();
+            confirmButtonPressed = true;
         }
     }
 
     public class MyWindowListener implements WindowListener {
         @Override
         public void windowClosing(WindowEvent e) {
-                System.exit(0);
+            System.exit(0);
         }
         @Override
         public void windowOpened(WindowEvent e) {}

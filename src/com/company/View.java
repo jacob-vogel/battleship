@@ -3,6 +3,8 @@ package com.company;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
 public class View {
     JFrame frame;
@@ -87,7 +89,8 @@ public class View {
             grid[letterRow][numberColumn].setBackground(Color.GRAY);
         }
     }
-    //public static void main(String[] args){
-    //  new View(10);
-    //}
+
+    public static void main(String[] args){
+      new View(10);
+    }
 }
