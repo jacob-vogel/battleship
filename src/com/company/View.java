@@ -61,8 +61,10 @@ public class View {
         frame.getContentPane().add(BorderLayout.CENTER, userInteractionPanel);
         frame.getContentPane().add(BorderLayout.SOUTH, userGuessResultPanel);
 
-        frame.setSize(300, 500);
+        frame.setSize(1000, 1000);
         frame.setVisible(true);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.addWindowListener(new MyWindowListener());
     }
     public void setConfirmButtonListener(ActionListener actionListener){confirmButton.addActionListener(actionListener);}
 
@@ -88,6 +90,25 @@ public class View {
         }else if (result == 0){
             grid[letterRow][numberColumn].setBackground(Color.GRAY);
         }
+    }
+
+    public class MyWindowListener implements WindowListener {
+        @Override
+        public void windowClosing(WindowEvent e) {
+            System.exit(0);
+        }
+        @Override
+        public void windowOpened(WindowEvent e) {}
+        @Override
+        public void windowClosed(WindowEvent e) {}
+        @Override
+        public void windowIconified(WindowEvent e) {}
+        @Override
+        public void windowDeiconified(WindowEvent e) {}
+        @Override
+        public void windowActivated(WindowEvent e) {}
+        @Override
+        public void windowDeactivated(WindowEvent e) {}
     }
 
     public static void main(String[] args){
