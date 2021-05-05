@@ -105,11 +105,11 @@ public class Server {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            if(timeOut >= 20){
-                connectionMessage.println("No opponent connected please try again later");
+            if(timeOut >= 100){
+                connectionMessage.println("No opponent connected please try again later");//gui
                 initializePID = 0;
             } else{
-                connectionMessage.println("Successfully connected to other player!");
+                connectionMessage.println("Successfully connected to other player!");//gui
             }
             connectionMessage.flush();
             if ((playerID % 2) == 0) {
@@ -140,7 +140,7 @@ public class Server {
                         break;
                     }
                     PrintWriter initialMessage = new PrintWriter(playerSocket.getOutputStream());
-                    initialMessage.println("GUESS> ");
+                    initialMessage.println("Your turn! Guess");
                     initialMessage.flush();
                     while (hit != 0 && !playerDisconnected) {
                         BufferedReader sharedReader = new BufferedReader(new InputStreamReader(playerSocket.getInputStream()));
@@ -153,13 +153,15 @@ public class Server {
                             hit = guessResult(guess, false);
                         }
                         if (hit == 1) {
-                            rez = "You got a hit! guess again> ";
+                            rez = "You got a hit! Guess again";
                         } else if (hit == 0) {
                             rez = "You missed. Opponent guessing...";
                         }
                         writer.println(rez);
                         writer.flush();
+                        gameOver = game.isGameEnd();
                         if (gameOver) {
+                            System.out.println("its the end");
                             initializePID = 0;
                             hit = -2;
                             PrintWriter endOfGameWriter = new PrintWriter(playerSocket.getOutputStream());
