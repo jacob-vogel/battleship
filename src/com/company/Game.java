@@ -1,8 +1,8 @@
 package com.company;
 
 public class Game {
-    Board player1Board;
-    Board player2Board;
+    protected Board player1Board;
+    protected Board player2Board;
 
     public Game(){
         player1Board = new Board();
@@ -18,7 +18,7 @@ public class Game {
                 return false;
             }
         }
-        else{
+        else {
             if (player2Board.gridPersonal[guess] == 3 || player2Board.gridPersonal[guess] == 2) {
                 return false;
             }
@@ -28,34 +28,34 @@ public class Game {
 
     int getGuessCord(String userGuess){
         int guess;
-        int numVal;
+        int numberValue;
         if(userGuess.length() < 2 || userGuess.length() > 3){
             return -1;
         }
         if(userGuess.length() == 3){
             if(((Character.getNumericValue(userGuess.charAt(2)) == 0)) && (Character.getNumericValue(userGuess.charAt(1)) == 1)){
-                numVal = 10;
+                numberValue = 10;
             }
             else{
                 return -1;
             }
         }
         else{
-            numVal = Character.getNumericValue(userGuess.charAt(1));
+            numberValue = Character.getNumericValue(userGuess.charAt(1));
         }
-        if(numVal < 1 || numVal > 10){
+        if(numberValue < 1 || numberValue > 10){
             return -1;
         }
-        numVal -= 1;
-        int charVal;
+        numberValue -= 1;
+        int characterValue;
         char letter = Character.toLowerCase(userGuess.charAt(0));
         if(letter < 97 || letter > 106){
             return -1;
         }
         else{
-            charVal = ((int) letter) - 97;
+            characterValue = ((int) letter) - 97;
         }
-        guess = (charVal*10) + numVal;
+        guess = (characterValue*10) + numberValue;
         return guess;
     }
 
@@ -82,9 +82,9 @@ public class Game {
     }
 
     boolean isGameEnd(){
-            if(player1Board.allShipsGone() || player2Board.allShipsGone()){
-                return true;
-            }
-            return false;
+        if(player1Board.allShipsGone() || player2Board.allShipsGone()){
+            return true;
+        }
+        return false;
     }
 }

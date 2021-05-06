@@ -1,13 +1,14 @@
 package com.company;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class Board {
-    int gridPersonal[];
-    int gridLength = 10;
-    int gridSize = 100;
+    protected int gridPersonal[];
+    private int gridLength = 10;
+    private int gridSize = 100;
     ArrayList<Ship> ships;
-    int shipCount;
+    private int shipCount;
 
     public Board(){
         gridPersonal = new int[100];
@@ -18,42 +19,57 @@ public class Board {
         ships.add(new Carrier());
         ships.add(new Destroyer());
 
-        for(Ship curShip : ships){
-            int[] coordinates = setShipPos(curShip);
-            curShip.setLocation(coordinates);
+        for(Ship currentShip : ships){
+            int[] coordinates = setShipPosition(currentShip);
+            currentShip.setLocation(coordinates);
         }
     }
 
-    int[] setShipPos(Ship ship){
+    int[] setShipPosition(Ship ship){
         int shipSize = ship.getSize();
-        int[] coords = new int[shipSize];
+        int[] shipCoordinates = new int[shipSize];
         int attempts = 0;
         boolean success = false;
         int location;
-
         shipCount++;
-        int incr = 1;
-        if((shipCount%2) ==1){
-            incr = gridLength;
+        int increment = 1;
+        boolean decrement = true;
+        if((shipCount%2) == 1){
+            increment = gridLength;
+            decrement = false;
         }
-
         while(!success & attempts++ < 200){
-            location = (int) (Math.random() * gridSize);
+            Random random = new Random();
+            location = random.nextInt(gridSize);
             int x = 0;
             success = true;
             while(success && x < shipSize){
                 if(gridPersonal[location] == 0){
-                    coords[x] = location;
-                    x++;
-                    location+=incr;
-                    if(location >= gridSize || location < 0){
-                        success = false;
-                    }
-                    int temp = location + shipSize;
-                    int tempMod = temp % 10;
-                    int locMod = location % 10;
-                    if(locMod < tempMod){
-                        success = false;
+                    shipCoordinates[x] = location;
+                    if(decrement){
+                        x++;
+                        location-=increment;
+                        if(location >= gridSize || location < 0){
+                            success = false;
+                        }
+                        int temp = location - shipSize;
+                        int tempMod = temp % 10;
+                        int locMod = location % 10;
+                        if(locMod > tempMod){
+                            success = false;
+                        }
+                    }else {
+                        x++;
+                        location += increment;
+                        if (location >= gridSize || location < 0) {
+                            success = false;
+                        }
+                        int temp = location + shipSize;
+                        int tempMod = temp % 10;
+                        int locMod = location % 10;
+                        if (locMod < tempMod) {
+                            success = false;
+                        }
                     }
                 }else{
                     success = false;
@@ -61,17 +77,13 @@ public class Board {
             }
         }
         int x = 0;
-        System.out.print("This is the location of ship with size: " + shipSize + " Location: ");
-        for(int i = 0; i < shipSize; i++){
-            System.out.print("coords[" + i + "] = " + coords[i] + " ");
-        }
-        System.out.print("\n");
         while(x<shipSize) {
-            gridPersonal[coords[x]] = 1;
+            gridPersonal[shipCoordinates[x]] = 1;
             x++;
         }
-        return coords;
+        return shipCoordinates;
     }
+
     boolean hitOrMiss(int guess){
         if(gridPersonal[guess] == 1){
             gridPersonal[guess] = 2;
@@ -84,6 +96,7 @@ public class Board {
         gridPersonal[guess] = 3;
         return false;
     }
+
     boolean allShipsGone(){
         for(Ship sunkShip : ships){
             if(!sunkShip.isSunk()){

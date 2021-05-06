@@ -20,10 +20,10 @@ public class View {
     public View(int length){
         frame = new JFrame();
         grid = new JButton[length+1][length+1];
-        enterPromptLabel = new JLabel("Enter Coordinate: ");
+        enterPromptLabel = new JLabel("Enter Response: ");
         enterCommandTextField = new JTextField(80);
-        confirmButton = new JButton("Confirm Guess");
-        resultPromptLable = new JLabel("Result: ");
+        confirmButton = new JButton("Confirm Response");
+        resultPromptLable = new JLabel(" ");
         resultLabel = new JLabel();
         resultLabel.setFont(new Font("Serif", Font.BOLD, 20));
 
@@ -117,9 +117,5 @@ public class View {
         public void windowActivated(WindowEvent e) {}
         @Override
         public void windowDeactivated(WindowEvent e) {}
-    }
-
-    public static void main(String[] args){
-        new View(10);
     }
 }
