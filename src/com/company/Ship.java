@@ -1,19 +1,14 @@
 package com.company;
 
-import java.util.Locale;
-
 public class Ship {
     protected int size;
     protected int permSize;
-    //0 = destroyer(size 2) 1 = submarine(size 3) 2 = cruiser (size 3)
-    //3 = battleship(size 4) 4 = carrier (size 5);
     protected int[] location;
     private boolean sunk;
 
     Ship(){
         sunk = false;
         size = 0;
-        //type = -1;
     }
 
     public boolean checkYourself(int hit){
@@ -34,10 +29,6 @@ public class Ship {
         location = coordinates;
     }
 
-    public int[] getLocation() {
-        return location;
-    }
-
     public int getSize() {
         return size;
     }
@@ -54,13 +45,5 @@ public class Ship {
 
     public void decrementSize(){
         size--;
-    }
-
-    public void locationToString(){
-        System.out.println("location array in ship with size = " + size);
-        for(int i = 0; i < permSize; i++){
-            System.out.print("location[" + i + "] = " + location[i] + " ");
-        }
-        System.out.println("");
     }
 }

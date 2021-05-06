@@ -16,27 +16,19 @@ public class Server {
     public Object lock = new Object();
     int initializePID;
 
-    void waitForLock(){
-        synchronized (lock) {
-            try {
-                lock.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    void notifyLock(){
-        synchronized (lock){
-            lock.notify();
-        }
-    }
-
     public static void main(String[] args){
-        new Server().serverSetUp();
+        Server server = new Server();
     }
 
-    public void serverSetUp(){
+    public void sleeper(int sleepTime){
+        try {
+            sleep(sleepTime);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Server(){
         try {
             initializePID = 0;
             ServerSocket socket = new ServerSocket(7000);
@@ -45,7 +37,7 @@ public class Server {
                     System.out.println("Waiting for clients to connect...");
                 }else{
                     do{
-                        sleep(10000);
+                        sleeper(15000);
                     }while(initializePID != 0);
                     System.out.println("Waiting for clients to connect...");
                 }
@@ -61,10 +53,6 @@ public class Server {
                 }
                 new Thread(new PlayerThread(conn, initializePID)).start();
             }
-        } catch (SocketException e) {
-            playerDisconnected = true;
-            initializePID = 0;
-            notifyLock();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -73,9 +61,35 @@ public class Server {
     class PlayerThread implements Runnable{
         Socket playerSocket;
         int playerID;
+        PrintWriter socketWriter;
+        BufferedReader socketReader;
+
         public PlayerThread(Socket s1, int pid){
             playerSocket = s1;
             playerID = pid;
+            socketWriter = null;
+            try {
+                socketWriter = new PrintWriter(playerSocket.getOutputStream());
+                socketReader = new BufferedReader(new InputStreamReader(playerSocket.getInputStream()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        void waitForLock(){
+            synchronized (lock) {
+                try {
+                    lock.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        void notifyLock(){
+            synchronized (lock){
+                lock.notify();
+            }
         }
 
         public int guessResult(String guess, boolean p){
@@ -88,39 +102,29 @@ public class Server {
             return -1;
         }
 
+        public void exceptionEnder(){
+            notifyLock();
+            playerDisconnected = true;
+            initializePID = 0;
+        }
+
         @Override
         public void run() {
             int timeOut = 0;
             while(playerDisconnected && (timeOut < 100)){
-                try {
-                    sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                sleeper(1000);
                 timeOut++;
             }
-            PrintWriter connectionMessage = null;
-            try {
-                connectionMessage = new PrintWriter(playerSocket.getOutputStream());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
             if(timeOut >= 100){
-                connectionMessage.println("No opponent connected please try again later");//gui
+                socketWriter.println("No opponent connected please try again later");
                 initializePID = 0;
             } else{
-                connectionMessage.println("Successfully connected to other player!");//gui
+                socketWriter.println("Successfully connected to other player!");
             }
-            connectionMessage.flush();
+            socketWriter.flush();
             if ((playerID % 2) == 0) {
-                PrintWriter player2Message = null;
-                try {
-                    player2Message = new PrintWriter(playerSocket.getOutputStream());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                player2Message.println("Opponent guessing...");
-                player2Message.flush();
+                socketWriter.println("Opponent guessing...");
+                socketWriter.flush();
                 waitForLock();
             }
             gameOver = false;
@@ -128,24 +132,14 @@ public class Server {
             while (!gameOver) {
                 try {
                     if(playerDisconnected){
-                        //System.out.println("Inside playerDisconnected if statement in player " + playerID);
-                        PrintWriter endOfGameWriter = null;
-                        try {
-                            endOfGameWriter = new PrintWriter(playerSocket.getOutputStream());
-                        } catch (IOException ioException) {
-                            ioException.printStackTrace();
-                        }
-                        endOfGameWriter.println("OPPONENT DISCONNECTED: YOU WON!");
-                        endOfGameWriter.flush();
+                        socketWriter.println("OPPONENT DISCONNECTED: YOU WON!");
+                        socketWriter.flush();
                         break;
                     }
-                    PrintWriter initialMessage = new PrintWriter(playerSocket.getOutputStream());
-                    initialMessage.println("Your turn! Guess");
-                    initialMessage.flush();
+                    socketWriter.println("Your turn! Guess");
+                    socketWriter.flush();
                     while (hit != 0 && !playerDisconnected) {
-                        BufferedReader sharedReader = new BufferedReader(new InputStreamReader(playerSocket.getInputStream()));
-                        String guess = sharedReader.readLine();
-                        PrintWriter writer = new PrintWriter(playerSocket.getOutputStream());
+                        String guess = socketReader.readLine();
                         String rez = "Invalid input (incorrect format, already been guessed, or out of range)";
                         if (playerID == 1) {
                             hit = guessResult(guess, true);
@@ -157,54 +151,37 @@ public class Server {
                         } else if (hit == 0) {
                             rez = "You missed. Opponent guessing...";
                         }
-                        writer.println(rez);
-                        writer.flush();
+                        socketWriter.println(rez);
+                        socketWriter.flush();
                         gameOver = game.isGameEnd();
                         if (gameOver) {
-                            System.out.println("its the end");
                             initializePID = 0;
                             hit = -2;
-                            PrintWriter endOfGameWriter = new PrintWriter(playerSocket.getOutputStream());
-                            endOfGameWriter.println("YOU WON");
-                            endOfGameWriter.flush();
+                            socketWriter.println("YOU WON");
+                            socketWriter.flush();
                             notifyLock();
                             break;
                         }
                     }
                     if (hit == 0 && !playerDisconnected) {
-                        //System.out.println("inside miss statement this is playerDisconnected = " + playerDisconnected + " player" + playerID);
                         hit = 10;
                         notifyLock();
                         waitForLock();
-                        //System.out.println("after wait for lock in miss statement this is playerDisconnected = " + playerDisconnected + " player" + playerID);
                         if (gameOver) {
                             break;
                         }
                     }
-                    //System.out.println("after miss statement player" + playerID);
                 } catch (SocketException e) {
-                    //System.out.println("SocketException hit in thread" + playerID + " unlocking...");
-                    notifyLock();
-                    playerDisconnected = true;
-                    initializePID = 0;
+                    exceptionEnder();
                 } catch (NullPointerException e){
-                    //System.out.println("Nullpointerexception hit in thread" + playerID + " unlocking...");
-                    notifyLock();
-                    playerDisconnected = true;
-                    initializePID = 0;
+                    exceptionEnder();
                 }  catch (IOException e) {
                     e.printStackTrace();
                 }
             }
             if(!playerDisconnected) {
-                PrintWriter finalMessageWriter = null;
-                try {
-                    finalMessageWriter = new PrintWriter(playerSocket.getOutputStream());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                finalMessageWriter.println("GAME OVER: YOU LOST");
-                finalMessageWriter.flush();
+                socketWriter.println("GAME OVER: YOU LOST");
+                socketWriter.flush();
             }
         }
     }

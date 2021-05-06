@@ -19,21 +19,18 @@ public class Player {
     private InputStreamReader stream;
     private Controller controller;
 
-    public void waitForInput(int timeOut){
+    public void waitForInput(int timeOut, String prompt){
         int i = 0;
         int j = 0;
         while(i < timeOut){
-            try {
-                //response = controller.getCurrentGuess();
-                if(controller.confirmButtonPressed){
-                    break;
-                }
-                sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            if(controller.confirmButtonPressed){
+                break;
             }
+            sleeper(500);
             if((i == (timeOut) - 1) && j != 1){
                 controller.changeViewBasedOnResult("Please respond, if not game will exit");
+                sleeper(10000);
+                controller.changeViewBasedOnResult(prompt);
                 i = 0;
                 j = 1;
             }else {
@@ -45,24 +42,28 @@ public class Player {
         }
     }
 
+    public void sleeper(int sleepTime){
+        try {
+            sleep(sleepTime);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String getResponse(int waitTime, String prompt){
+        waitForInput(waitTime, prompt);
+        String response = controller.getCurrentGuess();
+        return (response.toLowerCase(Locale.ROOT));
+    }
+
     public Player(){
         controller = new Controller();
         connected = false;
         boolean stay = true;
-        System.out.println("Welcome to Battleship!");//display on gui
         controller.changeViewBasedOnResult("Welcome to Battleship!");
-        try {
-            sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        System.out.println("Would you like to attempt to connect to another player? (yes/no) if not the game will exit");//display on gui
+        sleeper(3000);
         controller.changeViewBasedOnResult("Would you like to attempt to connect to another player? (yes/no) if not the game will exit");
-        //Scanner reader = new Scanner(System.in);
-        waitForInput(200);
-        String response = controller.getCurrentGuess();
-        response = response.toLowerCase(Locale.ROOT);
-        System.out.println("this is response when we wait: " + response);
+        String response = getResponse(200, "Would you like to attempt to connect to another player? (yes/no) if not the game will exit");
         if(response.equals("no") || response.equals("-")){
             stay = false;
         }
@@ -71,59 +72,38 @@ public class Player {
             if (connected) {
                 boolean endGame = false;
                 try {
-                    System.out.println("Connection to Server Successful!");
-                    controller.changeViewBasedOnResult("Waiting for another player to connect...");//gui
-                    //System.out.println("...");
+                    controller.changeViewBasedOnResult("Waiting for another player to connect...");
                     String connectionMessage = socketReader.readLine();
                     controller.changeViewBasedOnResult(connectionMessage);
-                    if(connectionMessage.equals("Successfully connected to other player!")){//gui
-                        //System.out.println(" ");
-                        //System.out.println("Ships have been set START GAME!");
-                    }
-                    else{
+                    if(connectionMessage.equals("No opponent connected please try again later")){
+                        sleeper(5000);
                         exit(0);
                     }
                     while (!endGame) {
                         String playerMsg = socketReader.readLine();
-                        System.out.print(playerMsg + " ");
                         controller.changeViewBasedOnResult(playerMsg);
-                        if(playerMsg.equals("Opponent guessing...")){
-                            System.out.println(" ");
-                        }
-                        else if (playerMsg.equals("Your turn! Guess")) {
+                        if (playerMsg.equals("Your turn! Guess")) {
                             boolean hit = true;
                             while (hit) {
-                                waitForInput(200);
-                                response = controller.getCurrentGuess();
+                                response = getResponse(200, "Your turn! Guess");
                                 writer.println(response);
                                 writer.flush();
                                 playerMsg = socketReader.readLine();
                                 controller.changeViewBasedOnResult(playerMsg);
                                 if (playerMsg.equals("You missed. Opponent guessing...")) {
-                                    System.out.println(" ");
                                     hit = false;
                                 } else if (playerMsg.equals("GAME OVER: YOU LOST") || playerMsg.equals("YOU WON")) {
-                                    System.out.println(playerMsg);
-                                    try {
-                                        sleep(5000);
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
+                                    sleeper(5000);
                                     endGame = true;
                                     hit = false;
                                     stay = false;
-                                }  else if(playerMsg.equals("Invalid input (incorrect format, already been guessed, or out of range)")){
-                                    System.out.println(" ");
-                                    System.out.println("Valid input(No spaces): {Letter a-j}{Number 1-10}");
-                                    System.out.print("GUESS> ");
+                                } else if (playerMsg.equals("Invalid input (incorrect format, already been guessed, or out of range)")){
+                                    sleeper(4000);
+                                    controller.changeViewBasedOnResult("Valid Input: {letter}{number}; Letter Range: a-j Number Range: 1-10. Guess Again.");
                                 }
                             }
                         } else if(playerMsg.equals("OPPONENT DISCONNECTED: YOU WON!")){
-                            try {
-                                sleep(10000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
+                            sleeper(10000);
                             exit(0);
                         }
                     }
@@ -132,15 +112,9 @@ public class Player {
                 }
             } else {
                 controller.changeViewBasedOnResult("ERROR: Unable to connect to server");
-                try {
-                    sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                sleeper(5000);
                 controller.changeViewBasedOnResult("Would you like to try again? (type 'yes' to stay)");
-                waitForInput(20);
-                response = controller.getCurrentGuess();
-                response = response.toLowerCase();
+                response = getResponse(200, "Would you like to try again? (type 'yes' to stay)");
                 if (response.equals("yes")) {
                     stay = true;
                 } else {
@@ -149,11 +123,7 @@ public class Player {
             }
         }
         controller.changeViewBasedOnResult("Thanks for Playing!");
-        try {
-            sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        sleeper(5000);
         exit(0);
     }
 
